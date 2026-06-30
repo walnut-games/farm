@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../theme/app_theme.dart';
+import 'particle_effect.dart';
 
 class GlowButton extends StatefulWidget {
   final Widget child;
   final VoidCallback? onPressed;
   final EdgeInsets padding;
   final bool enabled;
+  final String? soundAsset; // e.g. 'audio/coin.mp3'
+  final String? particleType; // e.g. 'coins', 'water', 'embers'
+  final int particleDurationMs;
 
-  const GlowButton({super.key, required this.child, this.onPressed, this.padding = const EdgeInsets.symmetric(vertical: 14, horizontal: 20), this.enabled = true});
+  const GlowButton({
+    super.key,
+    required this.child,
+    this.onPressed,
+    this.padding = const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+    this.enabled = true,
+    this.soundAsset = 'audio/coin.mp3',
+    this.particleType = 'coins',
+    this.particleDurationMs = 900,
+  });
 
   @override
   State<GlowButton> createState() => _GlowButtonState();
@@ -63,7 +77,25 @@ class _GlowButtonState extends State<GlowButton> with SingleTickerProviderStateM
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: enabled ? widget.onPressed : null,
+                  onTap: enabled
+                      ? () {
+                          // play click sound (non-blocking)
+                          try {
+                            if (widget.soundAsset != null) {
+                                final player = AudioPlayer();
+                                player.play(AssetSource(widget.soundAsset!));
+                            }
+                          } catch (_) {}
+                          // particle feedback overlay
+                          final maybeOverlay = Overlay.of(context);
+                          if (maybeOverlay != null) {
+                            final overlay = OverlayEntry(builder: (context) => Positioned.fill(child: ParticleEffect(type: widget.particleType!)));
+                            maybeOverlay.insert(overlay);
+                            Future.delayed(Duration(milliseconds: widget.particleDurationMs), () => overlay.remove());
+                          }
+                          widget.onPressed?.call();
+                        }
+                      : null,
                   borderRadius: BorderRadius.circular(18),
                   splashColor: AppTheme.gold.withAlpha(64),
                   highlightColor: AppTheme.accent.withAlpha(36),

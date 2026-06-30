@@ -4,6 +4,7 @@ import '../engine/game_engine.dart';
 import '../models/game_models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_wave_background.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glow_button.dart';
 import '../widgets/particle_effect.dart';
@@ -267,14 +268,14 @@ class _ActionSheetState extends State<_ActionSheet> with SingleTickerProviderSta
             const SizedBox(height: 12),
             Text('Стадия: ${widget.tree.stageLabel}'),
             const SizedBox(height: 12),
-            Wrap(spacing: 12, runSpacing: 12, children: [
-              _AnimatedActionButton(label: 'Полить', icon: Icons.water_drop, onTap: widget.tree.status == TreeStatus.growth ? widget.onWater : null),
-              _AnimatedActionButton(label: 'Убрать гусениц', icon: Icons.travel_explore, onTap: widget.tree.status == TreeStatus.growth ? widget.onDust : null),
-              _AnimatedActionButton(label: 'Собрать', icon: Icons.check, onTap: widget.tree.status == TreeStatus.rest ? widget.onHarvest : null),
+              Wrap(spacing: 12, runSpacing: 12, children: [
+              _AnimatedActionButton(label: 'Полить', icon: Icons.water_drop, onTap: widget.tree.status == TreeStatus.growth ? widget.onWater : null, soundAsset: 'audio/water.mp3', particleType: 'water'),
+              _AnimatedActionButton(label: 'Убрать гусениц', icon: Icons.travel_explore, onTap: widget.tree.status == TreeStatus.growth ? widget.onDust : null, soundAsset: 'audio/bird.mp3', particleType: 'dust'),
+              _AnimatedActionButton(label: 'Собрать', icon: Icons.check, onTap: widget.tree.status == TreeStatus.rest ? widget.onHarvest : null, soundAsset: 'audio/coin.mp3', particleType: 'coins'),
               _AnimatedActionButton(label: 'Сжечь', icon: Icons.fireplace, onTap: () {
                 context.read<GameEngine>().burnTree(widget.tree.id);
                 Navigator.pop(context);
-              }),
+              }, soundAsset: 'audio/burn.mp3', particleType: 'embers'),
             ]),
           ],
         ),
@@ -314,8 +315,10 @@ class _AnimatedActionButton extends StatefulWidget {
   final String label;
   final IconData icon;
   final VoidCallback? onTap;
+  final String? soundAsset;
+  final String? particleType;
 
-  const _AnimatedActionButton({required this.label, required this.icon, this.onTap});
+  const _AnimatedActionButton({required this.label, required this.icon, this.onTap, this.soundAsset, this.particleType});
 
   @override
   State<_AnimatedActionButton> createState() => _AnimatedActionButtonState();
@@ -330,7 +333,22 @@ class _AnimatedActionButtonState extends State<_AnimatedActionButton> {
       onTapDown: (_) => setState(() => _scale = 0.95),
       onTapUp: (_) => setState(() => _scale = 1.0),
       onTapCancel: () => setState(() => _scale = 1.0),
-      onTap: widget.onTap,
+      onTap: () {
+        // play optional sound and show particle overlay
+        try {
+          if (widget.soundAsset != null) {
+            final player = AudioPlayer();
+            player.play(AssetSource(widget.soundAsset!));
+          }
+        } catch (_) {}
+        final maybeOverlay = Overlay.of(context);
+        if (maybeOverlay != null && widget.particleType != null) {
+          final overlay = OverlayEntry(builder: (context) => Positioned.fill(child: ParticleEffect(type: widget.particleType!)));
+          maybeOverlay.insert(overlay);
+          Future.delayed(const Duration(milliseconds: 900), () => overlay.remove());
+        }
+        widget.onTap?.call();
+      },
       child: AnimatedScale(
         scale: _scale,
         duration: const Duration(milliseconds: 100),

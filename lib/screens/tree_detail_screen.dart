@@ -96,6 +96,8 @@ class TreeDetailScreen extends StatelessWidget {
                           engine.waterTree(tree.id);
                           Navigator.pop(context);
                         } : null,
+                        soundAsset: 'audio/water.mp3',
+                        particleType: 'water',
                         child: const Text('Полить'),
                       ),
                       const SizedBox(height: 12),
@@ -104,6 +106,8 @@ class TreeDetailScreen extends StatelessWidget {
                           engine.fightCaterpillars(tree.id);
                           Navigator.pop(context);
                         } : null,
+                        soundAsset: 'audio/bird.mp3',
+                        particleType: 'dust',
                         child: const Text('Убрать гусениц'),
                       ),
                       const SizedBox(height: 12),
@@ -112,6 +116,8 @@ class TreeDetailScreen extends StatelessWidget {
                           engine.collectHarvest(tree.id);
                           Navigator.pop(context);
                         } : null,
+                        soundAsset: 'audio/coin.mp3',
+                        particleType: 'coins',
                         child: const Text('Собрать'),
                       ),
                       const SizedBox(height: 12),
@@ -120,6 +126,8 @@ class TreeDetailScreen extends StatelessWidget {
                           engine.burnTree(tree.id);
                           Navigator.pop(context);
                         },
+                        soundAsset: 'audio/burn.mp3',
+                        particleType: 'embers',
                         child: const Text('Сжечь'),
                       ),
                     ],
