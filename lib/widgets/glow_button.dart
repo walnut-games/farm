@@ -15,6 +15,7 @@ class GlowButton extends StatefulWidget {
 
 class _GlowButtonState extends State<GlowButton> with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
+  bool _hovering = false;
 
   @override
   void initState() {
@@ -35,7 +36,14 @@ class _GlowButtonState extends State<GlowButton> with SingleTickerProviderStateM
       animation: _pulseController,
       builder: (context, child) {
         final glow = 0.28 + (_pulseController.value * 0.18);
-        return DecoratedBox(
+        final hoverScale = _hovering ? 1.04 : 1.0;
+        return MouseRegion(
+          cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+          onEnter: (_) => setState(() => _hovering = true),
+          onExit: (_) => setState(() => _hovering = false),
+          child: Transform.scale(
+            scale: hoverScale,
+            child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: enabled
@@ -65,6 +73,7 @@ class _GlowButtonState extends State<GlowButton> with SingleTickerProviderStateM
                 ),
               ),
             ),
+          ),
           ),
         );
       },

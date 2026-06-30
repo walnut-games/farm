@@ -52,20 +52,7 @@ class TreeCard extends StatelessWidget {
                 height: 140,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    'https://picsum.photos/seed/${tree.id}/280/140',
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const AppShimmer(height: 140, width: double.infinity, borderRadius: BorderRadius.all(Radius.circular(16)));
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey.shade800,
-                        child: const Center(child: Icon(Icons.image_not_supported, color: Colors.white54, size: 40)),
-                      );
-                    },
-                  ),
+                  child: _HoverImage(url: 'https://picsum.photos/seed/${tree.id}/280/140', height: 140, borderRadius: BorderRadius.circular(16)),
                 ),
               ),
               const SizedBox(height: 12),
@@ -156,6 +143,50 @@ class TreeCard extends StatelessWidget {
       case TreeStatus.dead:
         return const Icon(Icons.emoji_events, key: ValueKey('dead'), color: Colors.redAccent);
     }
+  }
+}
+
+class _HoverImage extends StatefulWidget {
+  final String url;
+  final double height;
+  final BorderRadius borderRadius;
+
+  const _HoverImage({required this.url, required this.height, required this.borderRadius});
+
+  @override
+  State<_HoverImage> createState() => _HoverImageState();
+}
+
+class _HoverImageState extends State<_HoverImage> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 260),
+        scale: _hover ? 1.03 : 1.0,
+        curve: Curves.easeOutCubic,
+        child: Image.network(
+          widget.url,
+          height: widget.height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const AppShimmer(height: 140, width: double.infinity, borderRadius: BorderRadius.all(Radius.circular(16)));
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.shade800,
+              child: const Center(child: Icon(Icons.image_not_supported, color: Colors.white54, size: 40)),
+            );
+          },
+        ),
+      ),
+    );
   }
 }
 
